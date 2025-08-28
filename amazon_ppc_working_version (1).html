@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon PPC Bid Optimization Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-calculator text-blue-600 mr-2"></i>
+                Amazon PPC Bid Optimization Tool
+            </h1>
+            <p class="text-gray-600">Multi-stage bid optimization with placement correlation analysis and comprehensive simulation tools</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8 overflow-x-auto">
+                    <button id="tab-calculator" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-calculator mr-2"></i>
+                        Primary Calculator
+                    </button>
+                    <button id="tab-placement-matrix" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-table mr-2"></i>
+                        Placement Matrix
+                    </button>
+                    <button id="tab-multi-stage" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-layer-group mr-2"></i>
+                        Multi-Stage Optimizer
+                    </button>
+                    <button id="tab-basic-examples" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-list mr-2"></i>
+                        Basic Examples
+                    </button>
+                    <button id="tab-advanced-simulation" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Advanced Simulation
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="calculator-content" class="tab-content">
+            <!-- Calculation Mode -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-cog text-gray-600 mr-2"></i>
+                    Calculation Mode
+                </h2>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="decreaseMode" class="flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-200 border-2">
+                        <i class="fas fa-arrow-up mr-2"></i>
+                        Placements Increase → Decrease Bids
+                    </button>
+                    <button id="increaseMode" class="flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-200 border-2">
+                        <i class="fas fa-arrow-down mr-2"></i>
+                        Placements Decrease → Increase Bids
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Input Section -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                        <i class="fas fa-edit text-green-600 mr-2"></i>
+                        Placement Data Input
+                    </h2>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Placement Type
+                                <i class="fas fa-info-circle text-gray-400 ml-1" title="Select the type of placement"></i>
+                            </label>
+                            <select id="placementType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>Primary Placement</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Old Placement (%)
+                                    <i class="fas fa-info-circle text-gray-400 ml-1" title="Current placement percentage"></i>
+                                </label>
+                                <input type="number" id="oldPlacement" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    New Placement (%)
+                                    <i class="fas fa-info-circle text-gray-400 ml-1" title="Target placement percentage"></i>
+                                </label>
+                                <input type="number" id="newPlacement" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="0">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Secondary Old (%) - Correlation Reference
+                                    <i class="fas fa-info-circle text-gray-400 ml-1" title="Reference secondary placement percentage"></i>
+                                </label>
+                                <input type="number" id="secondaryOld" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Secondary New (%) - Auto-Calculated
+                                    <i class="fas fa-lock text-gray-400 ml-1" title="Automatically calculated based on correlation"></i>
+                                </label>
+                                <input type="number" id="secondaryNew" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md" readonly value="0">
+                            </div>
+                        </div>
+
+                        <button id="useExampleValues" class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-lightbulb mr-2"></i>
+                            Load Example 1
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                        <i class="fas fa-chart-line text-purple-600 mr-2"></i>
+                        Calculation Results
+                    </h2>
+
+                    <!-- Primary Recommendation -->
+                    <div id="primaryRecommendation" class="mb-6 p-4 rounded-lg border-l-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Primary Recommendation</h3>
+                        <div id="bidChangeDisplay" class="text-3xl font-bold mb-2">+0.0%</div>
+                        <div id="bidChangeText" class="text-gray-600 mb-4">No change in bids</div>
+                        
+                        <div class="flex space-x-4">
+                            <div class="flex-1 bg-blue-100 p-3 rounded text-center">
+                                <div class="text-sm text-gray-600">Old</div>
+                                <div id="oldPlacementDisplay" class="text-lg font-semibold text-blue-600">0%</div>
+                            </div>
+                            <div class="flex-1 bg-green-100 p-3 rounded text-center">
+                                <div class="text-sm text-gray-600">New</div>
+                                <div id="newPlacementDisplay" class="text-lg font-semibold text-green-600">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Placement Correlation -->
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                            <i class="fas fa-link text-purple-600 mr-2"></i>
+                            Secondary Placement Correlation
+                        </h3>
+                        <div id="correlationText" class="text-gray-600 mb-4">Secondary placement correlation when primary changes</div>
+                        
+                        <div class="flex space-x-4">
+                            <div class="flex-1 bg-blue-100 p-3 rounded text-center">
+                                <div class="text-sm text-gray-600">Old</div>
+                                <div id="secondaryOldDisplay" class="text-lg font-semibold text-blue-600">0%</div>
+                            </div>
+                            <div class="flex-1 bg-purple-100 p-3 rounded text-center">
+                                <div class="text-sm text-gray-600">New</div>
+                                <div id="secondaryNewDisplay" class="text-lg font-semibold text-purple-600">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-4">
+                        <button id="saveToHistory" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                            <i class="fas fa-save mr-2"></i>
+                            Save to History
+                        </button>
+                        <button id="exportResults" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            Export Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bid Adjustment Visualization -->
+            <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+                    Bid Adjustment Visualization
+                </h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700 mb-3">Placement Changes</h3>
+                        <div style="height: 300px;">
+                            <canvas id="placementChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700 mb-3">Bid Impact</h3>
+                        <div style="height: 300px;">
+                            <canvas id="bidChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formula Explanation -->
+            <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-calculator text-gray-600 mr-2"></i>
+                    Formula Explanation
+                </h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Placements Increase → Decrease Bids -->
+                    <div id="increaseFormula" class="p-4 rounded-lg border-2">
+                        <h3 class="text-lg font-semibold mb-3">
+                            <i class="fas fa-arrow-up text-green-600 mr-2"></i>
+                            Placements Increase → Decrease Bids
+                        </h3>
+                        <p class="text-gray-600 mb-3">When ad placements increase, reduce bid amounts to maintain cost efficiency</p>
+                        <div class="bg-gray-800 text-white p-3 rounded font-mono text-sm">
+                            Bid Change % = (1 + Old Placement%) / (1 + New Placement%) - 1
+                        </div>
+                    </div>
+
+                    <!-- Placements Decrease → Increase Bids -->
+                    <div id="decreaseFormula" class="p-4 rounded-lg border-2">
+                        <h3 class="text-lg font-semibold mb-3">
+                            <i class="fas fa-arrow-down text-red-600 mr-2"></i>
+                            Placements Decrease → Increase Bids
+                        </h3>
+                        <p class="text-gray-600 mb-3">When ad placements decrease, increase bid amounts to regain visibility</p>
+                        <div class="bg-gray-800 text-white p-3 rounded font-mono text-sm">
+                            Bid Change % = (1 + Old Placement%) / (1 + New Placement%) - 1
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Placement Correlation -->
+                <div class="mt-6 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                    <h3 class="text-lg font-semibold mb-3">
+                        <i class="fas fa-link text-purple-600 mr-2"></i>
+                        Secondary Placement Correlation
+                    </h3>
+                    <p class="text-gray-600 mb-3">Secondary placements adjust to preserve effective bid value when primary placement changes</p>
+                    <div class="bg-gray-800 text-white p-3 rounded font-mono text-sm">
+                        Secondary New % = ((1 + Secondary Old%) × (1 + Primary New%)) / (1 + Primary Old%) - 1
+                    </div>
+                    <div class="mt-2 text-sm text-purple-700">
+                        <strong>Note:</strong> If result is negative, it's clamped to 0% (minimum placement threshold)
+                    </div>
+                </div>
+
+                <!-- Amazon Guidelines Warning -->
+                <div class="mt-6 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                    <h3 class="text-lg font-semibold mb-3">
+                        <i class="fas fa-exclamation-triangle text-orange-600 mr-2"></i>
+                        Amazon Guidelines & Limitations
+                    </h3>
+                    <div class="text-orange-700 text-sm space-y-2">
+                        <div><strong>Maximum Placement Cap:</strong> Amazon enforces a 900% maximum placement limit. Values exceeding this will be auto-corrected.</div>
+                        <div><strong>Bid Adjustment Limits:</strong> Extreme bid changes (>200%) may indicate oversized placement adjustments.</div>
+                        <div><strong>Secondary Placement Logic:</strong> When secondary old placement = 0%, the result will remain 0% to prevent calculation errors.</div>
+                    </div>
+                </div>
+
+                <!-- Validation Warning -->
+                <div id="validationWarning" class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded hidden">
+                    <div class="flex">
+                        <i class="fas fa-exclamation-triangle text-yellow-400 mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="text-yellow-800 font-semibold">Validation Warning</h4>
+                            <p id="warningText" class="text-yellow-700 mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-history text-gray-600 mr-2"></i>
+                    Calculation History
+                </h2>
+                <div id="historyContainer" class="space-y-3">
+                    <p class="text-gray-500 text-center py-8">No calculations saved yet. Use "Save to History" to store your results.</p>
+                </div>
+                <button id="clearHistory" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors hidden">
+                    <i class="fas fa-trash mr-2"></i>
+                    Clear History
+                </button>
+            </div>
+        </div>
+
+        <!-- Placement Matrix Content -->
+        <div id="placement-matrix-content" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-table text-blue-600 mr-2"></i>
+                    Amazon Ad Placement Optimization Matrix
+                </h2>
+                <p class="text-gray-600 mb-6">Interactive lookup tool for Amazon advertising placement strategies</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Top of Search</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rest of Search</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Pages</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">SP-EX (Exact)</td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">ALWAYS</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">SP-PH (Phrase)</td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">ALWAYS</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">SP-BR (Broad)</td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">SP-PAT (Product Targeting)</td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">ALWAYS</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">SP-XPAT (Category Targeting)</td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">SP-CAT (Category)</td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">NO</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Auto</td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">SOMETIMES</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h3 class="font-semibold text-green-800 mb-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">ALWAYS</span>
+                            Recommended
+                        </h3>
+                        <p class="text-green-700 text-sm">Optimal placement for this campaign type. Prioritize these placements for maximum effectiveness.</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h3 class="font-semibold text-yellow-800 mb-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mr-2">SOMETIMES</span>
+                            Conditional
+                        </h3>
+                        <p class="text-yellow-700 text-sm">Use based on performance data and specific campaign goals. Test and optimize.</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <h3 class="font-semibold text-red-800 mb-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 mr-2">NO</span>
+                            Not Recommended
+                        </h3>
+                        <p class="text-red-700 text-sm">Generally ineffective for this campaign type. Avoid these placements.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Multi-Stage Optimizer Content -->
+        <div id="multi-stage-content" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-layer-group text-purple-600 mr-2"></i>
+                    Enhanced Multi-Stage Progressive Optimizer
+                </h2>
+                <p class="text-gray-600 mb-6">Run comprehensive 30-step progressive optimization with detailed analysis and comparison capabilities</p>
+                
+                <!-- Stage Overview -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <h3 class="font-semibold text-red-800 mb-2">Stage 1: Aggressive</h3>
+                        <div class="text-2xl font-bold text-red-600 mb-1">-6.5%</div>
+                        <p class="text-red-700 text-sm mb-3">Steps 1-10: High bid reduction for rapid optimization</p>
+                        <div class="text-xs text-red-600">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Quickly reduces bids while maintaining placement effectiveness
+                        </div>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <h3 class="font-semibold text-orange-800 mb-2">Stage 2: Moderate</h3>
+                        <div class="text-2xl font-bold text-orange-600 mb-1">-5.0%</div>
+                        <p class="text-orange-700 text-sm mb-3">Steps 11-20: Medium bid reduction for balance</p>
+                        <div class="text-xs text-orange-600">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Balances cost efficiency with performance stability
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h3 class="font-semibold text-yellow-800 mb-2">Stage 3: Conservative</h3>
+                        <div class="text-2xl font-bold text-yellow-600 mb-1">-3.0%</div>
+                        <p class="text-yellow-700 text-sm mb-3">Steps 21-30: Fine-tuning with minimal changes</p>
+                        <div class="text-xs text-yellow-600">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Precise adjustments for optimal long-term performance
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Scenarios Section -->
+                <div class="mb-8 bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-star text-yellow-500 mr-2"></i>
+                        Pre-loaded Example Scenarios
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button id="aggressiveScenario" class="p-4 bg-red-100 hover:bg-red-200 rounded-lg border border-red-300 transition-colors">
+                            <div class="font-semibold text-red-800">Aggressive Campaign</div>
+                            <div class="text-2xl font-bold text-red-600 my-2">$1.00</div>
+                            <div class="text-sm text-red-700">High-volume, cost-focused optimization</div>
+                        </button>
+                        <button id="balancedScenario" class="p-4 bg-blue-100 hover:bg-blue-200 rounded-lg border border-blue-300 transition-colors">
+                            <div class="font-semibold text-blue-800">Balanced Strategy</div>
+                            <div class="text-2xl font-bold text-blue-600 my-2">$1.50</div>
+                            <div class="text-sm text-blue-700">Moderate approach for stable growth</div>
+                        </button>
+                        <button id="conservativeScenario" class="p-4 bg-green-100 hover:bg-green-200 rounded-lg border border-green-300 transition-colors">
+                            <div class="font-semibold text-green-800">Conservative Approach</div>
+                            <div class="text-2xl font-bold text-green-600 my-2">$2.50</div>
+                            <div class="text-sm text-green-700">Premium positioning with careful optimization</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Starting Bid ($)</label>
+                        <input type="number" id="startingBid" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" value="1.00" step="0.01">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Starting Placement (%)</label>
+                        <input type="number" id="startingPlacement" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" value="0">
+                    </div>
+                    <div class="flex items-end">
+                        <div class="flex space-x-2 w-full">
+                            <button id="runOptimization" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                                <i class="fas fa-play mr-2"></i>
+                                Run Optimization
+                            </button>
+                            <button id="compareMode" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                                <i class="fas fa-copy mr-2"></i>
+                                Compare
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div id="optimizationResults" class="hidden">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Optimization Results & Analysis</h3>
+                    
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-800">Initial Bid</h4>
+                            <div id="initialBidDisplay" class="text-xl font-bold text-blue-600">$1.00</div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-800">Final Bid</h4>
+                            <div id="finalBidDisplay" class="text-xl font-bold text-green-600">-</div>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-800">Total Change</h4>
+                            <div id="totalChangeDisplay" class="text-xl font-bold text-purple-600">-</div>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-orange-800">Final Placement</h4>
+                            <div id="finalPlacementDisplay" class="text-xl font-bold text-orange-600">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Separate Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-chart-line text-blue-600 mr-2"></i>
+                                Bid Progression (30 Steps)
+                            </h4>
+                            <div style="height: 300px;">
+                                <canvas id="bidProgressionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-chart-area text-green-600 mr-2"></i>
+                                Placement Progression (30 Steps)
+                            </h4>
+                            <div style="height: 300px;">
+                                <canvas id="placementProgressionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Data Table -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-table text-purple-600 mr-2"></i>
+                            Detailed 30-Step Optimization Data
+                        </h4>
+                        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                            <table id="optimizationTable" class="min-w-full text-sm">
+                                <thead class="bg-gray-100 sticky top-0">
+                                    <tr>
+                                        <th class="text-left py-2 px-3 border-b">Step</th>
+                                        <th class="text-left py-2 px-3 border-b">Stage</th>
+                                        <th class="text-left py-2 px-3 border-b">Bid Reduction %</th>
+                                        <th class="text-left py-2 px-3 border-b">New Bid</th>
+                                        <th class="text-left py-2 px-3 border-b">Placement %</th>
+                                        <th class="text-left py-2 px-3 border-b">Effective Bid</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="optimizationTableBody" class="divide-y divide-gray-200">
+                                    <!-- Table content will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Export Optimization Data -->
+                    <div class="mt-4 flex justify-end">
+                        <button id="exportOptimizationData" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            Export Optimization Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Comparison Mode Section -->
+                <div id="comparisonMode" class="hidden mt-8">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-balance-scale text-indigo-600 mr-2"></i>
+                        Scenario Comparison
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div id="scenario1" class="bg-gray-50 p-4 rounded-lg border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Scenario 1</h4>
+                            <div class="space-y-2 text-sm">
+                                <div>Initial: <span class="font-semibold">$1.00</span></div>
+                                <div>Final: <span class="font-semibold text-green-600">$0.17</span></div>
+                                <div>Change: <span class="font-semibold text-red-600">-83%</span></div>
+                            </div>
+                        </div>
+                        <div id="scenario2" class="bg-gray-50 p-4 rounded-lg border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Scenario 2</h4>
+                            <div class="space-y-2 text-sm">
+                                <div>Initial: <span class="font-semibold">$1.50</span></div>
+                                <div>Final: <span class="font-semibold text-green-600">$0.26</span></div>
+                                <div>Change: <span class="font-semibold text-red-600">-83%</span></div>
+                            </div>
+                        </div>
+                        <div id="scenario3" class="bg-gray-50 p-4 rounded-lg border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Scenario 3</h4>
+                            <div class="space-y-2 text-sm">
+                                <div>Initial: <span class="font-semibold">$2.50</span></div>
+                                <div>Final: <span class="font-semibold text-green-600">$0.43</span></div>
+                                <div>Change: <span class="font-semibold text-red-600">-83%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Best Practices Guide -->
+                <div class="mt-8 bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                    <h3 class="text-lg font-semibold text-indigo-800 mb-4">
+                        <i class="fas fa-lightbulb text-indigo-600 mr-2"></i>
+                        Multi-Stage Optimization Best Practices
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-indigo-700">
+                        <div>
+                            <h4 class="font-medium mb-2">When to Use Each Stage:</h4>
+                            <ul class="space-y-1 text-sm">
+                                <li><strong>Stage 1 (Aggressive):</strong> New campaigns or high-cost keywords</li>
+                                <li><strong>Stage 2 (Moderate):</strong> Established campaigns needing refinement</li>
+                                <li><strong>Stage 3 (Conservative):</strong> High-performing campaigns requiring fine-tuning</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-2">Key Benefits:</h4>
+                            <ul class="space-y-1 text-sm">
+                                <li>• Gradual optimization reduces performance shock</li>
+                                <li>• Multi-stage approach ensures stable results</li>
+                                <li>• Detailed tracking enables precise adjustments</li>
+                                <li>• Comparison mode helps choose optimal strategy</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Examples Content -->
+        <div id="basic-examples-content" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-list text-green-600 mr-2"></i>
+                    Basic Simulation Examples
+                </h2>
+                <p class="text-gray-600 mb-6">Reference examples showing bid adjustment calculations in both scenarios</p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Increase in Placements, Decrease in Bids -->
+                    <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                        <h3 class="text-lg font-semibold text-green-800 mb-4">
+                            <i class="fas fa-arrow-up text-green-600 mr-2"></i>
+                            Increase in Placements, Decrease in Bids
+                        </h3>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Old Bid</th>
+                                        <th class="text-left py-2">Decrease %</th>
+                                        <th class="text-left py-2">New Bid</th>
+                                        <th class="text-left py-2">Placement %</th>
+                                        <th class="text-left py-2">Bid After Placements</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="py-2">$1.00</td>
+                                        <td class="py-2">0%</td>
+                                        <td class="py-2">$1.00</td>
+                                        <td class="py-2">0%</td>
+                                        <td class="py-2 font-semibold">$1.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">$1.00</td>
+                                        <td class="py-2">20%</td>
+                                        <td class="py-2">$0.80</td>
+                                        <td class="py-2">25%</td>
+                                        <td class="py-2 font-semibold">$1.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">$1.00</td>
+                                        <td class="py-2">17%</td>
+                                        <td class="py-2">$0.83</td>
+                                        <td class="py-2">50%</td>
+                                        <td class="py-2 font-semibold">$1.25</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">$0.83</td>
+                                        <td class="py-2">14%</td>
+                                        <td class="py-2">$0.71</td>
+                                        <td class="py-2">75%</td>
+                                        <td class="py-2 font-semibold">$1.25</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">$0.71</td>
+                                        <td class="py-2">13%</td>
+                                        <td class="py-2">$0.63</td>
+                                        <td class="py-2">100%</td>
+                                        <td class="py-2 font-semibold">$1.25</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Decrease in Placements, Increase in Bids -->
+                    <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                        <h3 class="text-lg font-semibold text-red-800 mb-4">
+                            <i class="fas fa-arrow-down text-red-600 mr-2"></i>
+                            Decrease in Placements, Increase in Bids
+                        </h3>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Old Bid</th>
+                                        <th class="text-left py-2">Increase %</th>
+                                        <th class="text-left py-2">New Bid</th>
+                                        <th class="text-left py-2">Placement %</th>
+                                        <th class="text-left py-2">Bid After Placements</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="py-2">$1.00</td>
+                                        <td class="py-2">200%</td>
+                                        <td class="py-2">$3.00</td>
+                                        <td class="py-2">200%</td>
+                                        <td class="py-2 font-semibold">$3.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">$1.00</td>
+                                        <td class="py-2">71%</td>
+                                        <td class="py-2">$1.71</td>
+                                        <td class="py-2">75%</td>
+                                        <td class="py-2 font-semibold">$3.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">$1.71</td>
+                                        <td class="py-2">17%</td>
+                                        <td class="py-2">$2.00</td>
+                                        <td class="py-2">50%</td>
+                                        <td class="py-2 font-semibold">$3.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">$2.00</td>
+                                        <td class="py-2">20%</td>
+                                        <td class="py-2">$2.40</td>
+                                        <td class="py-2">25%</td>
+                                        <td class="py-2 font-semibold">$3.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">$2.40</td>
+                                        <td class="py-2">25%</td>
+                                        <td class="py-2">$3.00</td>
+                                        <td class="py-2">0%</td>
+                                        <td class="py-2 font-semibold">$3.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-blue-50 p-6 rounded-lg border border-blue-200">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-3">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        Key Insights
+                    </h3>
+                    <ul class="space-y-2 text-blue-700">
+                        <li><i class="fas fa-check mr-2"></i>As placements increase, bid amounts decrease to maintain cost efficiency</li>
+                        <li><i class="fas fa-check mr-2"></i>As placements decrease, bid amounts increase to maintain visibility</li>
+                        <li><i class="fas fa-check mr-2"></i>The "Bid After Placements" shows the effective cost after placement adjustments</li>
+                        <li><i class="fas fa-check mr-2"></i>Progressive adjustments help achieve optimal bid-placement balance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Simulation Content -->
+        <div id="advanced-simulation-content" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                    <i class="fas fa-chart-line text-orange-600 mr-2"></i>
+                    Advanced Simulation Reference
+                </h2>
+                <p class="text-gray-600 mb-6">Detailed multi-stage optimization data with forward and reverse scenarios</p>
+                
+                <!-- 6-Stage Selection Buttons -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Select Stage to View</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <button id="stage-btn-stage1" class="stage-button px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left" data-stage="stage1">
+                            <div class="font-semibold text-sm">Stage 1: Aggressive</div>
+                            <div class="text-xs opacity-75">-6.5% (Steps 1-10)</div>
+                        </button>
+                        <button id="stage-btn-stage2" class="stage-button px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left" data-stage="stage2">
+                            <div class="font-semibold text-sm">Stage 2: Moderate</div>
+                            <div class="text-xs opacity-75">-5.0% (Steps 11-20)</div>
+                        </button>
+                        <button id="stage-btn-stage3" class="stage-button px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left" data-stage="stage3">
+                            <div class="font-semibold text-sm">Stage 3: Conservative</div>
+                            <div class="text-xs opacity-75">-3.0% (Steps 21-30)</div>
+                        </button>
+                        <button id="stage-btn-reverse3" class="stage-button px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left" data-stage="reverse3">
+                            <div class="font-semibold text-sm">Reverse Stage 3</div>
+                            <div class="text-xs opacity-75">+2.0% Bid Increase</div>
+                        </button>
+                        <button id="stage-btn-reverse2" class="stage-button px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left" data-stage="reverse2">
+                            <div class="font-semibold text-sm">Reverse Stage 2</div>
+                            <div class="text-xs opacity-75">+4.5% Bid Increase</div>
+                        </button>
+                        <button id="stage-btn-reverse1" class="stage-button px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left" data-stage="reverse1">
+                            <div class="font-semibold text-sm">Reverse Stage 1</div>
+                            <div class="text-xs opacity-75">+7.0% Bid Increase</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stage Data Display -->
+                <div id="simulationTableContainer">
+                    <!-- Tables will be dynamically generated here based on selection -->
+                </div>
+
+                <!-- Stage Visualization -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-chart-area text-purple-600 mr-2"></i>
+                        Stage Visualization
+                    </h3>
+                    <div style="height: 400px;">
+                        <canvas id="simulationChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stage Insights -->
+                <div class="mt-8 bg-orange-50 p-6 rounded-lg border border-orange-200">
+                    <h3 class="text-lg font-semibold text-orange-800 mb-4">
+                        <i class="fas fa-lightbulb text-orange-600 mr-2"></i>
+                        6-Stage Optimization Insights
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-orange-700">
+                        <div>
+                            <h4 class="font-medium mb-3">Forward Optimization Stages</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li><span class="inline-block w-3 h-3 bg-red-500 rounded mr-2"></span><strong>Stage 1 (-6.5%):</strong> Aggressive bid reduction for rapid optimization</li>
+                                <li><span class="inline-block w-3 h-3 bg-orange-500 rounded mr-2"></span><strong>Stage 2 (-5.0%):</strong> Medium bid reduction for balanced approach</li>
+                                <li><span class="inline-block w-3 h-3 bg-yellow-500 rounded mr-2"></span><strong>Stage 3 (-3.0%):</strong> Conservative fine-tuning with minimal changes</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-3">Reverse Optimization Stages</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li><span class="inline-block w-3 h-3 bg-green-400 rounded mr-2"></span><strong>Reverse Stage 3 (+2.0%):</strong> Conservative bid increase</li>
+                                <li><span class="inline-block w-3 h-3 bg-blue-400 rounded mr-2"></span><strong>Reverse Stage 2 (+4.5%):</strong> Moderate bid increase</li>
+                                <li><span class="inline-block w-3 h-3 bg-purple-400 rounded mr-2"></span><strong>Reverse Stage 1 (+7.0%):</strong> Aggressive bid increase</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ComprehensiveBidOptimizer {
+            constructor() {
+                this.currentMode = 'increase';
+                this.currentTab = 'calculator';
+                this.currentStage = 'stage1';
+                this.charts = {};
+                this.history = this.loadHistory();
+                this.currentOptimizationData = null;
+                this.exampleIndex = 0;
+                this.examples = [
+                    { old: 250, new: 50, secondary: 200, name: 'Example 1' },
+                    { old: 75, new: 200, secondary: 10, name: 'Example 2' },
+                    { old: 150, new: 25, secondary: 180, name: 'Example 3' }
+                ];
+                this.initializeElements();
+                this.bindEvents();
+                this.setTab('calculator');
+                this.setMode('increase');
+                this.calculate();
+                this.renderHistory();
+                this.initializeSimulationData();
+            }
+
+            initializeElements() {
+                this.elements = {
+                    // Tab buttons
+                    'tab-calculator': document.getElementById('tab-calculator'),
+                    'tab-placement-matrix': document.getElementById('tab-placement-matrix'),  
+                    'tab-multi-stage': document.getElementById('tab-multi-stage'),
+                    'tab-basic-examples': document.getElementById('tab-basic-examples'),
+                    'tab-advanced-simulation': document.getElementById('tab-advanced-simulation'),
+                    
+                    // Tab content
+                    'calculator-content': document.getElementById('calculator-content'),
+                    'placement-matrix-content': document.getElementById('placement-matrix-content'),
+                    'multi-stage-content': document.getElementById('multi-stage-content'),
+                    'basic-examples-content': document.getElementById('basic-examples-content'),
+                    'advanced-simulation-content': document.getElementById('advanced-simulation-content'),
+                    
+                    // Calculator elements
+                    decreaseMode: document.getElementById('decreaseMode'),
+                    increaseMode: document.getElementById('increaseMode'),
+                    oldPlacement: document.getElementById('oldPlacement'),
+                    newPlacement: document.getElementById('newPlacement'),
+                    secondaryOld: document.getElementById('secondaryOld'),
+                    secondaryNew: document.getElementById('secondaryNew'),
+                    useExampleValues: document.getElementById('useExampleValues'),
+                    saveToHistory: document.getElementById('saveToHistory'),
+                    exportResults: document.getElementById('exportResults'),
+                    clearHistory: document.getElementById('clearHistory'),
+                    
+                    // Display elements
+                    bidChangeDisplay: document.getElementById('bidChangeDisplay'),
+                    bidChangeText: document.getElementById('bidChangeText'),
+                    oldPlacementDisplay: document.getElementById('oldPlacementDisplay'),
+                    newPlacementDisplay: document.getElementById('newPlacementDisplay'),
+                    secondaryOldDisplay: document.getElementById('secondaryOldDisplay'),
+                    secondaryNewDisplay: document.getElementById('secondaryNewDisplay'),
+                    correlationText: document.getElementById('correlationText'),
+                    validationWarning: document.getElementById('validationWarning'),
+                    warningText: document.getElementById('warningText'),
+                    historyContainer: document.getElementById('historyContainer'),
+                    primaryRecommendation: document.getElementById('primaryRecommendation'),
+                    increaseFormula: document.getElementById('increaseFormula'),
+                    decreaseFormula: document.getElementById('decreaseFormula'),
+                    
+                    // Multi-stage elements
+                    startingBid: document.getElementById('startingBid'),
+                    startingPlacement: document.getElementById('startingPlacement'),
+                    runOptimization: document.getElementById('runOptimization'),
+                    optimizationResults: document.getElementById('optimizationResults'),
+                    initialBidDisplay: document.getElementById('initialBidDisplay'),
+                    finalBidDisplay: document.getElementById('finalBidDisplay'),
+                    totalChangeDisplay: document.getElementById('totalChangeDisplay'),
+                    finalPlacementDisplay: document.getElementById('finalPlacementDisplay'),
+                    optimizationTableBody: document.getElementById('optimizationTableBody'),
+                    
+                    // Enhanced multi-stage elements
+                    aggressiveScenario: document.getElementById('aggressiveScenario'),
+                    balancedScenario: document.getElementById('balancedScenario'),
+                    conservativeScenario: document.getElementById('conservativeScenario'),
+                    compareMode: document.getElementById('compareMode'),
+                    comparisonMode: document.getElementById('comparisonMode'),
+                    exportOptimizationData: document.getElementById('exportOptimizationData'),
+                    
+                    // Advanced simulation elements
+                    simulationTableContainer: document.getElementById('simulationTableContainer')
+                };
+            }
+
+            bindEvents() {
+                // Tab navigation
+                Object.keys(this.elements).forEach(key => {
+                    if (key.startsWith('tab-')) {
+                        this.elements[key].addEventListener('click', () => {
+                            const tabName = key.replace('tab-', '');
+                            this.setTab(tabName);
+                        });
+                    }
+                });
+
+                // Calculator events
+                this.elements.decreaseMode.addEventListener('click', () => this.setMode('decrease'));
+                this.elements.increaseMode.addEventListener('click', () => this.setMode('increase'));
+                
+                [this.elements.oldPlacement, this.elements.newPlacement, this.elements.secondaryOld].forEach(el => {
+                    el.addEventListener('input', () => this.calculate());
+                });
+
+                this.elements.useExampleValues.addEventListener('click', () => this.cycleExampleValues());
+                this.elements.saveToHistory.addEventListener('click', () => this.saveToHistory());
+                this.elements.exportResults.addEventListener('click', () => this.exportResults());
+                this.elements.clearHistory.addEventListener('click', () => this.clearHistory());
+
+                // Enhanced multi-stage events
+                this.elements.runOptimization.addEventListener('click', () => this.runMultiStageOptimization());
+                this.elements.aggressiveScenario.addEventListener('click', () => this.loadScenario('aggressive'));
+                this.elements.balancedScenario.addEventListener('click', () => this.loadScenario('balanced'));
+                this.elements.conservativeScenario.addEventListener('click', () => this.loadScenario('conservative'));
+                this.elements.compareMode.addEventListener('click', () => this.toggleComparisonMode());
+                this.elements.exportOptimizationData.addEventListener('click', () => this.exportOptimizationData());
+
+                // Advanced simulation stage button events
+                document.querySelectorAll('.stage-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const stageId = button.dataset.stage;
+                        this.setActiveStage(stageId);
+                    });
+                });
+            }
+
+            setTab(tabName) {
+                this.currentTab = tabName;
+                
+                // Update tab button styles
+                Object.keys(this.elements).forEach(key => {
+                    if (key.startsWith('tab-')) {
+                        const button = this.elements[key];
+                        if (key === `tab-${tabName}`) {
+                            button.className = 'tab-button whitespace-nowrap py-2 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm';
+                        } else {
+                            button.className = 'tab-button whitespace-nowrap py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm';
+                        }
+                    }
+                });
+
+                // Show/hide tab content
+                Object.keys(this.elements).forEach(key => {
+                    if (key.endsWith('-content')) {
+                        const content = this.elements[key];
+                        if (key === `${tabName}-content`) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    }
+                });
+            }
+
+            setMode(mode) {
+                this.currentMode = mode;
+                
+                if (mode === 'increase') {
+                    this.elements.increaseMode.className = 'flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-200 border-2 bg-red-600 text-white border-red-600';
+                    this.elements.decreaseMode.className = 'flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-200 border-2 bg-gray-100 text-gray-600 border-gray-300';
+                    
+                    this.elements.decreaseFormula.className = 'p-4 rounded-lg border-2 border-red-200 bg-red-50';
+                    this.elements.increaseFormula.className = 'p-4 rounded-lg border-2 border-gray-200 bg-gray-50';
+                } else {
+                    this.elements.decreaseMode.className = 'flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-200 border-2 bg-green-600 text-white border-green-600';
+                    this.elements.increaseMode.className = 'flex-1 px-6 py-4 rounded-lg font-medium transition-all duration-200 border-2 bg-gray-100 text-gray-600 border-gray-300';
+                    
+                    this.elements.increaseFormula.className = 'p-4 rounded-lg border-2 border-green-200 bg-green-50';
+                    this.elements.decreaseFormula.className = 'p-4 rounded-lg border-2 border-gray-200 bg-gray-50';
+                }
+                
+                this.calculate();
+            }
+
+            cycleExampleValues() {
+                const example = this.examples[this.exampleIndex];
+                this.elements.oldPlacement.value = example.old;
+                this.elements.newPlacement.value = example.new;
+                this.elements.secondaryOld.value = example.secondary;
+                
+                this.exampleIndex = (this.exampleIndex + 1) % this.examples.length;
+                const nextExample = this.examples[this.exampleIndex];
+                this.elements.useExampleValues.innerHTML = `<i class="fas fa-lightbulb mr-2"></i>Load ${nextExample.name}`;
+                
+                this.calculate();
+            }
+
+            // ENHANCED: Fixed secondary placement calculation with zero check
+            computeSecondaryNewPct(primaryOldPct, primaryNewPct, secondaryOldPct) {
+                // FIX: If secondary old is 0, return 0 to prevent incorrect calculations
+                if (secondaryOldPct === 0) {
+                    return 0;
+                }
+
+                const P0 = 1 + (Number(primaryOldPct) || 0) / 100;
+                const P1 = 1 + (Number(primaryNewPct) || 0) / 100;
+                const S0 = 1 + (Number(secondaryOldPct) || 0) / 100;
+
+                const S1 = (S0 * P1) / P0;
+                const rawPct = (S1 - 1) * 100;
+                const clamped = Math.max(0, rawPct);
+
+                return Number(clamped.toFixed(1));
+            }
+
+            computeBidChangePct(primaryOldPct, primaryNewPct) {
+                const P0 = 1 + (Number(primaryOldPct) || 0) / 100;
+                const P1 = 1 + (Number(primaryNewPct) || 0) / 100;
+                return (P0 / P1 - 1) * 100;
+            }
+
+            calculate() {
+                let oldPlacement = parseFloat(this.elements.oldPlacement.value) || 0;
+                let newPlacement = parseFloat(this.elements.newPlacement.value) || 0;
+                let secondaryOld = parseFloat(this.elements.secondaryOld.value) || 0;
+
+                // ENHANCED: Apply 900% cap validation with auto-correction
+                let corrected = false;
+                if (oldPlacement > 900) {
+                    oldPlacement = 900;
+                    this.elements.oldPlacement.value = 900;
+                    corrected = true;
+                }
+                if (newPlacement > 900) {
+                    newPlacement = 900;
+                    this.elements.newPlacement.value = 900;
+                    corrected = true;
+                }
+                if (secondaryOld > 900) {
+                    secondaryOld = 900;
+                    this.elements.secondaryOld.value = 900;
+                    corrected = true;
+                }
+
+                const secondaryNew = this.computeSecondaryNewPct(oldPlacement, newPlacement, secondaryOld);
+                this.elements.secondaryNew.value = secondaryNew;
+
+                const bidChange = this.computeBidChangePct(oldPlacement, newPlacement);
+
+                this.updateDisplay(oldPlacement, newPlacement, secondaryOld, secondaryNew, bidChange);
+                this.updateCharts(oldPlacement, newPlacement, secondaryOld, secondaryNew, bidChange);
+                this.validateInputs(oldPlacement, newPlacement, secondaryOld, secondaryNew, bidChange, corrected);
+            }
+
+            updateDisplay(oldPlacement, newPlacement, secondaryOld, secondaryNew, bidChange) {
+                const bidChangeFormatted = bidChange >= 0 ? `+${bidChange.toFixed(1)}%` : `${bidChange.toFixed(1)}%`;
+                this.elements.bidChangeDisplay.textContent = bidChangeFormatted;
+                
+                if (bidChange > 0) {
+                    this.elements.bidChangeText.textContent = `Increase bids by ${bidChange.toFixed(1)}%`;
+                    this.elements.primaryRecommendation.className = 'mb-6 p-4 rounded-lg border-l-4 border-red-500 bg-red-50';
+                    this.elements.bidChangeDisplay.className = 'text-3xl font-bold mb-2 text-red-600';
+                } else if (bidChange < 0) {
+                    this.elements.bidChangeText.textContent = `Decrease bids by ${Math.abs(bidChange).toFixed(1)}%`;
+                    this.elements.primaryRecommendation.className = 'mb-6 p-4 rounded-lg border-l-4 border-green-500 bg-green-50';
+                    this.elements.bidChangeDisplay.className = 'text-3xl font-bold mb-2 text-green-600';
+                } else {
+                    this.elements.bidChangeText.textContent = 'No change in bids';
+                    this.elements.primaryRecommendation.className = 'mb-6 p-4 rounded-lg border-l-4 border-gray-300 bg-gray-50';
+                    this.elements.bidChangeDisplay.className = 'text-3xl font-bold mb-2 text-gray-600';
+                }
+
+                this.elements.oldPlacementDisplay.textContent = `${oldPlacement}%`;
+                this.elements.newPlacementDisplay.textContent = `${newPlacement}%`;
+                this.elements.secondaryOldDisplay.textContent = `${secondaryOld}%`;
+                this.elements.secondaryNewDisplay.textContent = `${secondaryNew}%`;
+
+                const correlationChange = secondaryOld === 0 ? 0 : ((secondaryNew - secondaryOld) / secondaryOld * 100);
+                this.elements.correlationText.textContent = `Secondary placement changes by ${correlationChange.toFixed(1)}% when primary changes`;
+            }
+
+            updateCharts(oldPlacement, newPlacement, secondaryOld, secondaryNew, bidChange) {
+                // Only update charts if we're on the calculator tab
+                if (this.currentTab !== 'calculator') return;
+
+                const placementCtx = document.getElementById('placementChart');
+                if (!placementCtx) return;
+
+                if (this.charts.placement) {
+                    this.charts.placement.destroy();
+                }
+                
+                this.charts.placement = new Chart(placementCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Primary Old', 'Primary New', 'Secondary Old', 'Secondary New'],
+                        datasets: [{
+                            label: 'Placement %',
+                            data: [oldPlacement, newPlacement, secondaryOld, secondaryNew],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(139, 92, 246, 0.8)',
+                                'rgba(236, 72, 153, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(59, 130, 246)',
+                                'rgb(16, 185, 129)',
+                                'rgb(139, 92, 246)',
+                                'rgb(236, 72, 153)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Placement %'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+
+                const bidCtx = document.getElementById('bidChart');
+                if (!bidCtx) return;
+
+                if (this.charts.bid) {
+                    this.charts.bid.destroy();
+                }
+
+                const bidColor = bidChange >= 0 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(16, 185, 129, 0.8)';
+                const bidBorderColor = bidChange >= 0 ? 'rgb(239, 68, 68)' : 'rgb(16, 185, 129)';
+
+                this.charts.bid = new Chart(bidCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Bid Adjustment'],
+                        datasets: [{
+                            label: 'Bid Change %',
+                            data: [bidChange],
+                            backgroundColor: [bidColor],
+                            borderColor: [bidBorderColor],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Bid Change %'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // ENHANCED: Improved validation with 900% cap notifications
+            validateInputs(oldPlacement, newPlacement, secondaryOld, secondaryNew, bidChange, corrected) {
+                let warning = '';
+
+                if (corrected) {
+                    warning = 'Placement values exceeding 900% have been auto-corrected to comply with Amazon\'s maximum placement limit.';
+                } else if (Math.abs(bidChange) > 200) {
+                    warning = `Extreme bid adjustment of ${bidChange.toFixed(1)}% detected. Consider smaller placement changes for gradual optimization.`;
+                } else if (secondaryNew === 0 && secondaryOld > 0) {
+                    warning = `Secondary placement was clamped to 0% from ${secondaryOld}%. This indicates a significant primary placement decrease.`;
+                } else if (oldPlacement === newPlacement) {
+                    warning = 'No placement change detected. Bid adjustments will be minimal.';
+                }
+
+                if (warning) {
+                    this.elements.validationWarning.classList.remove('hidden');
+                    this.elements.warningText.textContent = warning;
+                } else {
+                    this.elements.validationWarning.classList.add('hidden');
+                }
+            }
+
+            // Enhanced Multi-Stage Optimization Methods
+            loadScenario(type) {
+                switch(type) {
+                    case 'aggressive':
+                        this.elements.startingBid.value = '1.00';
+                        this.elements.startingPlacement.value = '0';
+                        break;
+                    case 'balanced':
+                        this.elements.startingBid.value = '1.50';
+                        this.elements.startingPlacement.value = '0';
+                        break;
+                    case 'conservative':
+                        this.elements.startingBid.value = '2.50';
+                        this.elements.startingPlacement.value = '0';
+                        break;
+                }
+            }
+
+            runMultiStageOptimization() {
+                const startingBid = parseFloat(this.elements.startingBid.value) || 1.00;
+                const startingPlacement = parseFloat(this.elements.startingPlacement.value) || 0;
+
+                const optimizationData = this.generateOptimizationData(startingBid, startingPlacement);
+                this.currentOptimizationData = optimizationData;
+                
+                this.elements.optimizationResults.classList.remove('hidden');
+                this.elements.initialBidDisplay.textContent = `$${startingBid.toFixed(2)}`;
+                this.elements.finalBidDisplay.textContent = `$${optimizationData.finalBid.toFixed(2)}`;
+                this.elements.totalChangeDisplay.textContent = `${optimizationData.totalChange.toFixed(1)}%`;
+                this.elements.finalPlacementDisplay.textContent = `${optimizationData.finalPlacement}%`;
+
+                this.renderOptimizationCharts(optimizationData);
+                this.renderOptimizationTable(optimizationData);
+            }
+
+            generateOptimizationData(startingBid, startingPlacement) {
+                const stages = [
+                    { name: 'Stage 1: Aggressive', decrease: 6.5, steps: 10, color: 'rgb(239, 68, 68)' },
+                    { name: 'Stage 2: Moderate', decrease: 5.0, steps: 10, color: 'rgb(245, 158, 11)' },
+                    { name: 'Stage 3: Conservative', decrease: 3.0, steps: 10, color: 'rgb(234, 179, 8)' }
+                ];
+
+                let currentBid = startingBid;
+                let currentPlacement = startingPlacement;
+                const data = [];
+
+                stages.forEach((stage, stageIndex) => {
+                    for (let step = 1; step <= stage.steps; step++) {
+                        const stepDecrease = stage.decrease / 100;
+                        const newBid = currentBid * (1 - stepDecrease);
+                        currentPlacement += 10; // 10% placement increase per step
+                        const effectiveBid = newBid * (1 + currentPlacement / 100);
+
+                        data.push({
+                            step: stageIndex * 10 + step,
+                            stage: stage.name,
+                            stageColor: stage.color,
+                            originalBid: currentBid,
+                            decreasePercent: stage.decrease,
+                            newBid: newBid,
+                            placement: currentPlacement,
+                            effectiveBid: effectiveBid
+                        });
+
+                        currentBid = newBid;
+                    }
+                });
+
+                return {
+                    data: data,
+                    finalBid: currentBid,
+                    finalPlacement: currentPlacement,
+                    totalChange: ((currentBid - startingBid) / startingBid) * 100
+                };
+            }
+
+            renderOptimizationCharts(optimizationData) {
+                // Bid Progression Chart
+                const bidCtx = document.getElementById('bidProgressionChart');
+                if (bidCtx) {
+                    if (this.charts.bidProgression) {
+                        this.charts.bidProgression.destroy();
+                    }
+
+                    this.charts.bidProgression = new Chart(bidCtx, {
+                        type: 'line',
+                        data: {
+                            labels: optimizationData.data.map(d => `${d.step}`),
+                            datasets: [{
+                                label: 'Bid Amount ($)',
+                                data: optimizationData.data.map(d => d.newBid),
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                fill: true,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    title: { display: true, text: 'Step' }
+                                },
+                                y: {
+                                    title: { display: true, text: 'Bid Amount ($)' },
+                                    beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+
+                // Placement Progression Chart
+                const placementCtx = document.getElementById('placementProgressionChart');
+                if (placementCtx) {
+                    if (this.charts.placementProgression) {
+                        this.charts.placementProgression.destroy();
+                    }
+
+                    this.charts.placementProgression = new Chart(placementCtx, {
+                        type: 'line',
+                        data: {
+                            labels: optimizationData.data.map(d => `${d.step}`),
+                            datasets: [{
+                                label: 'Placement %',
+                                data: optimizationData.data.map(d => d.placement),
+                                borderColor: 'rgb(16, 185, 129)',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    title: { display: true, text: 'Step' }
+                                },
+                                y: {
+                                    title: { display: true, text: 'Placement %' },
+                                    beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+            }
+
+            renderOptimizationTable(optimizationData) {
+                const tbody = this.elements.optimizationTableBody;
+                if (!tbody) return;
+
+                tbody.innerHTML = optimizationData.data.map((row, index) => {
+                    const stageClass = index < 10 ? 'bg-red-50' : index < 20 ? 'bg-orange-50' : 'bg-yellow-50';
+                    return `
+                        <tr class="${stageClass}">
+                            <td class="py-2 px-3">${row.step}</td>
+                            <td class="py-2 px-3">${row.stage}</td>
+                            <td class="py-2 px-3">-${row.decreasePercent}%</td>
+                            <td class="py-2 px-3">$${row.newBid.toFixed(2)}</td>
+                            <td class="py-2 px-3">${row.placement}%</td>
+                            <td class="py-2 px-3 font-semibold">$${row.effectiveBid.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            toggleComparisonMode() {
+                const comparisonDiv = this.elements.comparisonMode;
+                if (comparisonDiv.classList.contains('hidden')) {
+                    comparisonDiv.classList.remove('hidden');
+                    this.elements.compareMode.innerHTML = '<i class="fas fa-times mr-2"></i>Hide Comparison';
+                } else {
+                    comparisonDiv.classList.add('hidden');
+                    this.elements.compareMode.innerHTML = '<i class="fas fa-copy mr-2"></i>Compare';
+                }
+            }
+
+            exportOptimizationData() {
+                if (!this.currentOptimizationData) return;
+
+                const csvContent = [
+                    'Step,Stage,Bid Reduction %,New Bid,Placement %,Effective Bid',
+                    ...this.currentOptimizationData.data.map(row => 
+                        `${row.step},"${row.stage}",${row.decreasePercent}%,$${row.newBid.toFixed(2)},${row.placement}%,$${row.effectiveBid.toFixed(2)}`
+                    )
+                ].join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Multi_Stage_Optimization_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Advanced Simulation Methods - UPDATED WITH EXACT EXCEL DATA
+            initializeSimulationData() {
+                this.simulationStages = this.generateAllStageData();
+                this.setActiveStage('stage1');
+            }
+
+            generateAllStageData() {
+                return {
+                    // Forward stages - EXACT Excel data
+                    stage1: {
+                        name: 'Stage 1: -6.5% Bid Decrease (Steps 1-10)',
+                        color: '#ff6b6b',
+                        type: 'decrease',
+                        percentage: -6.5,
+                        data: [
+                            { step: '1st Adjustment', originalBid: 1.00, change: -6.5, newBid: 0.94, placement: 10, effectiveBid: 1.03 },
+                            { step: '2nd Adjustment', originalBid: 0.94, change: -6.5, newBid: 0.87, placement: 20, effectiveBid: 1.05 },
+                            { step: '3rd Adjustment', originalBid: 0.87, change: -6.5, newBid: 0.82, placement: 30, effectiveBid: 1.06 },
+                            { step: '4th Adjustment', originalBid: 0.82, change: -6.5, newBid: 0.76, placement: 40, effectiveBid: 1.07 },
+                            { step: '5th Adjustment', originalBid: 0.76, change: -6.5, newBid: 0.71, placement: 50, effectiveBid: 1.07 },
+                            { step: '6th Adjustment', originalBid: 0.71, change: -6.5, newBid: 0.67, placement: 60, effectiveBid: 1.07 },
+                            { step: '7th Adjustment', originalBid: 0.67, change: -6.5, newBid: 0.62, placement: 70, effectiveBid: 1.06 },
+                            { step: '8th Adjustment', originalBid: 0.62, change: -6.5, newBid: 0.58, placement: 80, effectiveBid: 1.05 },
+                            { step: '9th Adjustment', originalBid: 0.58, change: -6.5, newBid: 0.55, placement: 90, effectiveBid: 1.04 },
+                            { step: '10th Adjustment', originalBid: 0.55, change: -6.5, newBid: 0.51, placement: 100, effectiveBid: 1.02 }
+                        ]
+                    },
+                    stage2: {
+                        name: 'Stage 2: -5.0% Bid Decrease (Steps 11-20)',
+                        color: '#4ecdc4',
+                        type: 'decrease',
+                        percentage: -5.0,
+                        data: [
+                            { step: '11th Adjustment', originalBid: 0.55, change: -5.0, newBid: 0.52, placement: 110, effectiveBid: 1.09 },
+                            { step: '12th Adjustment', originalBid: 0.52, change: -5.0, newBid: 0.49, placement: 120, effectiveBid: 1.08 },
+                            { step: '13th Adjustment', originalBid: 0.49, change: -5.0, newBid: 0.47, placement: 130, effectiveBid: 1.08 },
+                            { step: '14th Adjustment', originalBid: 0.47, change: -5.0, newBid: 0.44, placement: 140, effectiveBid: 1.07 },
+                            { step: '15th Adjustment', originalBid: 0.44, change: -5.0, newBid: 0.42, placement: 150, effectiveBid: 1.06 },
+                            { step: '16th Adjustment', originalBid: 0.42, change: -5.0, newBid: 0.40, placement: 160, effectiveBid: 1.04 },
+                            { step: '17th Adjustment', originalBid: 0.40, change: -5.0, newBid: 0.38, placement: 170, effectiveBid: 1.03 },
+                            { step: '18th Adjustment', originalBid: 0.38, change: -5.0, newBid: 0.36, placement: 180, effectiveBid: 1.01 },
+                            { step: '19th Adjustment', originalBid: 0.36, change: -5.0, newBid: 0.34, placement: 190, effectiveBid: 1.00 },
+                            { step: '20th Adjustment', originalBid: 0.34, change: -5.0, newBid: 0.33, placement: 200, effectiveBid: 0.98 }
+                        ]
+                    },
+                    stage3: {
+                        name: 'Stage 3: -3.0% Bid Decrease (Steps 21-30)',
+                        color: '#45b7d1',
+                        type: 'decrease',
+                        percentage: -3.0,
+                        data: [
+                            { step: '21st Adjustment', originalBid: 0.34, change: -3.0, newBid: 0.33, placement: 210, effectiveBid: 1.04 },
+                            { step: '22nd Adjustment', originalBid: 0.33, change: -3.0, newBid: 0.32, placement: 220, effectiveBid: 1.04 },
+                            { step: '23rd Adjustment', originalBid: 0.32, change: -3.0, newBid: 0.31, placement: 230, effectiveBid: 1.04 },
+                            { step: '24th Adjustment', originalBid: 0.31, change: -3.0, newBid: 0.30, placement: 240, effectiveBid: 1.04 },
+                            { step: '25th Adjustment', originalBid: 0.30, change: -3.0, newBid: 0.30, placement: 250, effectiveBid: 1.03 },
+                            { step: '26th Adjustment', originalBid: 0.30, change: -3.0, newBid: 0.29, placement: 260, effectiveBid: 1.03 },
+                            { step: '27th Adjustment', originalBid: 0.29, change: -3.0, newBid: 0.28, placement: 270, effectiveBid: 1.03 },
+                            { step: '28th Adjustment', originalBid: 0.28, change: -3.0, newBid: 0.27, placement: 280, effectiveBid: 1.03 },
+                            { step: '29th Adjustment', originalBid: 0.27, change: -3.0, newBid: 0.26, placement: 290, effectiveBid: 1.02 },
+                            { step: '30th Adjustment', originalBid: 0.26, change: -3.0, newBid: 0.25, placement: 300, effectiveBid: 1.02 }
+                        ]
+                    },
+                    // Reverse stages - EXACT Excel data
+                    reverse3: {
+                        name: 'Reverse Stage 3: +2.0% Bid Increase',
+                        color: '#96ceb4',
+                        type: 'increase',
+                        percentage: 2.0,
+                        data: [
+                            { step: '1st Adjustment', originalBid: 0.26, change: 2.0, newBid: 0.27, placement: 300, effectiveBid: 1.07 },
+                            { step: '2nd Adjustment', originalBid: 0.27, change: 2.0, newBid: 0.27, placement: 290, effectiveBid: 1.06 },
+                            { step: '3rd Adjustment', originalBid: 0.27, change: 2.0, newBid: 0.28, placement: 280, effectiveBid: 1.06 },
+                            { step: '4th Adjustment', originalBid: 0.28, change: 2.0, newBid: 0.28, placement: 270, effectiveBid: 1.05 },
+                            { step: '5th Adjustment', originalBid: 0.28, change: 2.0, newBid: 0.29, placement: 260, effectiveBid: 1.04 },
+                            { step: '6th Adjustment', originalBid: 0.29, change: 2.0, newBid: 0.29, placement: 250, effectiveBid: 1.03 },
+                            { step: '7th Adjustment', originalBid: 0.29, change: 2.0, newBid: 0.30, placement: 240, effectiveBid: 1.02 },
+                            { step: '8th Adjustment', originalBid: 0.30, change: 2.0, newBid: 0.31, placement: 230, effectiveBid: 1.01 },
+                            { step: '9th Adjustment', originalBid: 0.31, change: 2.0, newBid: 0.31, placement: 220, effectiveBid: 1.00 },
+                            { step: '10th Adjustment', originalBid: 0.31, change: 2.0, newBid: 0.32, placement: 210, effectiveBid: 0.99 }
+                        ]
+                    },
+                    reverse2: {
+                        name: 'Reverse Stage 2: +4.5% Bid Increase',
+                        color: '#feca57',
+                        type: 'increase',
+                        percentage: 4.5,
+                        data: [
+                            { step: '11th Adjustment', originalBid: 0.31, change: 4.5, newBid: 0.33, placement: 200, effectiveBid: 0.98 },
+                            { step: '12th Adjustment', originalBid: 0.33, change: 4.5, newBid: 0.34, placement: 190, effectiveBid: 0.99 },
+                            { step: '13th Adjustment', originalBid: 0.34, change: 4.5, newBid: 0.36, placement: 180, effectiveBid: 1.00 },
+                            { step: '14th Adjustment', originalBid: 0.36, change: 4.5, newBid: 0.37, placement: 170, effectiveBid: 1.01 },
+                            { step: '15th Adjustment', originalBid: 0.37, change: 4.5, newBid: 0.39, placement: 160, effectiveBid: 1.01 },
+                            { step: '16th Adjustment', originalBid: 0.39, change: 4.5, newBid: 0.41, placement: 150, effectiveBid: 1.02 },
+                            { step: '17th Adjustment', originalBid: 0.41, change: 4.5, newBid: 0.43, placement: 140, effectiveBid: 1.02 },
+                            { step: '18th Adjustment', originalBid: 0.43, change: 4.5, newBid: 0.44, placement: 130, effectiveBid: 1.02 },
+                            { step: '19th Adjustment', originalBid: 0.44, change: 4.5, newBid: 0.46, placement: 120, effectiveBid: 1.02 },
+                            { step: '20th Adjustment', originalBid: 0.46, change: 4.5, newBid: 0.49, placement: 110, effectiveBid: 1.02 }
+                        ]
+                    },
+                    reverse1: {
+                        name: 'Reverse Stage 1: +7.0% Bid Increase',
+                        color: '#ff9ff3',
+                        type: 'increase',
+                        percentage: 7.0,
+                        data: [
+                            { step: '21st Adjustment', originalBid: 0.46, change: 7.0, newBid: 0.50, placement: 100, effectiveBid: 0.99 },
+                            { step: '22nd Adjustment', originalBid: 0.50, change: 7.0, newBid: 0.53, placement: 90, effectiveBid: 1.01 },
+                            { step: '23rd Adjustment', originalBid: 0.53, change: 7.0, newBid: 0.57, placement: 80, effectiveBid: 1.02 },
+                            { step: '24th Adjustment', originalBid: 0.57, change: 7.0, newBid: 0.61, placement: 70, effectiveBid: 1.04 },
+                            { step: '25th Adjustment', originalBid: 0.61, change: 7.0, newBid: 0.65, placement: 60, effectiveBid: 1.04 },
+                            { step: '26th Adjustment', originalBid: 0.65, change: 7.0, newBid: 0.70, placement: 50, effectiveBid: 1.05 },
+                            { step: '27th Adjustment', originalBid: 0.70, change: 7.0, newBid: 0.75, placement: 40, effectiveBid: 1.04 },
+                            { step: '28th Adjustment', originalBid: 0.75, change: 7.0, newBid: 0.80, placement: 30, effectiveBid: 1.04 },
+                            { step: '29th Adjustment', originalBid: 0.80, change: 7.0, newBid: 0.85, placement: 20, effectiveBid: 1.03 },
+                            { step: '30th Adjustment', originalBid: 0.85, change: 7.0, newBid: 0.91, placement: 10, effectiveBid: 1.01 }
+                        ]
+                    }
+                };
+            }
+
+            setActiveStage(stageId) {
+                this.currentStage = stageId;
+                
+                // Update button styles
+                document.querySelectorAll('.stage-button').forEach(button => {
+                    const buttonStage = button.dataset.stage;
+                    if (buttonStage === stageId) {
+                        // Get stage color and apply active styling
+                        const stage = this.simulationStages[stageId];
+                        button.style.backgroundColor = stage.color + '20';
+                        button.style.borderColor = stage.color;
+                        button.style.color = stage.color.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).reduce((acc, val) => acc + val) < 384 ? '#ffffff' : stage.color;
+                        button.classList.add('shadow-md');
+                    } else {
+                        button.style.backgroundColor = '#f3f4f6';
+                        button.style.borderColor = '#d1d5db';
+                        button.style.color = '#374151';
+                        button.classList.remove('shadow-md');
+                    }
+                });
+
+                this.updateSimulationDisplay();
+            }
+
+            updateSimulationDisplay() {
+                const stage = this.simulationStages[this.currentStage];
+                if (!stage) return;
+
+                const container = this.elements.simulationTableContainer;
+                
+                const tableHTML = this.generateStageTable(stage);
+                container.innerHTML = tableHTML;
+                
+                this.renderSimulationChart(stage);
+            }
+
+            generateStageTable(stage) {
+                const typeText = stage.type === 'increase' ? 'Increase' : 'Decrease';
+                const changeSymbol = stage.type === 'increase' ? '+' : '-';
+                
+                return `
+                    <div class="p-6 rounded-lg border-2" style="background-color: ${stage.color}10; border-color: ${stage.color};">
+                        <h3 class="text-xl font-semibold mb-4" style="color: ${stage.color};">
+                            ${stage.name}
+                        </h3>
+                        
+                        <div class="bg-white rounded-lg p-4 mb-4">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div class="text-center">
+                                    <div class="text-gray-600">Stage Type</div>
+                                    <div class="font-semibold" style="color: ${stage.color};">${typeText} Bids</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-gray-600">Change Rate</div>
+                                    <div class="font-semibold" style="color: ${stage.color};">${changeSymbol}${Math.abs(stage.percentage)}%</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-gray-600">Steps</div>
+                                    <div class="font-semibold">10 Adjustments</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-gray-600">Strategy</div>
+                                    <div class="font-semibold">${stage.name.split(':')[0]}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Step</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Original Bid</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">${typeText} in Bids %</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">New Bid</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Placement%</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-700">Bid After Placements</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        ${stage.data.map((row, index) => `
+                                            <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">
+                                                <td class="py-3 px-4 font-medium">${row.step}</td>
+                                                <td class="py-3 px-4">$${row.originalBid.toFixed(2)}</td>
+                                                <td class="py-3 px-4" style="color: ${stage.color};">${changeSymbol}${Math.abs(row.change)}%</td>
+                                                <td class="py-3 px-4 font-semibold">$${row.newBid.toFixed(2)}</td>
+                                                <td class="py-3 px-4">${row.placement}%</td>
+                                                <td class="py-3 px-4 font-bold" style="color: ${stage.color};">$${row.effectiveBid.toFixed(2)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-4 bg-white rounded-lg">
+                            <h4 class="font-semibold mb-2" style="color: ${stage.color};">Stage Summary</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                                <div>
+                                    <span class="text-gray-600">Initial Bid:</span>
+                                    <span class="font-semibold ml-1">$${stage.data[0].originalBid.toFixed(2)}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Final Bid:</span>
+                                    <span class="font-semibold ml-1">$${stage.data[stage.data.length - 1].newBid.toFixed(2)}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Total Change:</span>
+                                    <span class="font-semibold ml-1" style="color: ${stage.color};">${(((stage.data[stage.data.length - 1].newBid - stage.data[0].originalBid) / stage.data[0].originalBid) * 100).toFixed(1)}%</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Avg Effective Bid:</span>
+                                    <span class="font-semibold ml-1">$${(stage.data.reduce((sum, row) => sum + row.effectiveBid, 0) / stage.data.length).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderSimulationChart(stage) {
+                const ctx = document.getElementById('simulationChart');
+                if (!ctx) return;
+
+                if (this.charts.simulation) {
+                    this.charts.simulation.destroy();
+                }
+
+                this.charts.simulation = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: stage.data.map(d => d.step),
+                        datasets: [
+                            {
+                                label: 'New Bid ($)',
+                                data: stage.data.map(d => d.newBid),
+                                borderColor: stage.color,
+                                backgroundColor: stage.color + '20',
+                                fill: false,
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Bid After Placements ($)',
+                                data: stage.data.map(d => d.effectiveBid),
+                                borderColor: stage.color + 'AA',
+                                backgroundColor: stage.color + '10',
+                                fill: false,
+                                tension: 0.1,
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Optimization Steps'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Bid Amount ($)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            saveToHistory() {
+                const oldPlacement = parseFloat(this.elements.oldPlacement.value) || 0;
+                const newPlacement = parseFloat(this.elements.newPlacement.value) || 0;
+                const secondaryOld = parseFloat(this.elements.secondaryOld.value) || 0;
+                const secondaryNew = parseFloat(this.elements.secondaryNew.value) || 0;
+                const bidChange = this.computeBidChangePct(oldPlacement, newPlacement);
+
+                const record = {
+                    timestamp: new Date().toISOString(),
+                    mode: this.currentMode,
+                    oldPlacement,
+                    newPlacement,
+                    secondaryOld,
+                    secondaryNew,
+                    bidChange
+                };
+
+                this.history.unshift(record);
+                if (this.history.length > 10) {
+                    this.history = this.history.slice(0, 10);
+                }
+
+                localStorage.setItem('bidOptimizerHistory', JSON.stringify(this.history));
+                this.renderHistory();
+
+                const originalText = this.elements.saveToHistory.innerHTML;
+                this.elements.saveToHistory.innerHTML = '<i class="fas fa-check mr-2"></i>Saved!';
+                this.elements.saveToHistory.disabled = true;
+                setTimeout(() => {
+                    this.elements.saveToHistory.innerHTML = originalText;
+                    this.elements.saveToHistory.disabled = false;
+                }, 1500);
+            }
+
+            loadHistory() {
+                try {
+                    return JSON.parse(localStorage.getItem('bidOptimizerHistory') || '[]');
+                } catch {
+                    return [];
+                }
+            }
+
+            renderHistory() {
+                if (this.history.length === 0) {
+                    this.elements.historyContainer.innerHTML = '<p class="text-gray-500 text-center py-8">No calculations saved yet. Use "Save to History" to store your results.</p>';
+                    this.elements.clearHistory.classList.add('hidden');
+                    return;
+                }
+
+                this.elements.clearHistory.classList.remove('hidden');
+                this.elements.historyContainer.innerHTML = this.history.map((record, index) => {
+                    const date = new Date(record.timestamp).toLocaleString();
+                    const bidChangeText = record.bidChange >= 0 ? `+${record.bidChange.toFixed(1)}%` : `${record.bidChange.toFixed(1)}%`;
+                    const bidChangeColor = record.bidChange >= 0 ? 'text-red-600' : 'text-green-600';
+                    const modeIcon = record.mode === 'increase' ? 'arrow-down' : 'arrow-up';
+                    const modeColor = record.mode === 'increase' ? 'text-red-600' : 'text-green-600';
+
+                    return `
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="font-medium">
+                                    <i class="fas fa-${modeIcon} ${modeColor} mr-2"></i>
+                                    ${record.mode === 'increase' ? 'Decrease → Increase' : 'Increase → Decrease'}
+                                </div>
+                                <div class="text-sm text-gray-500">${date}</div>
+                            </div>
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <div class="text-gray-600">Primary</div>
+                                    <div class="font-semibold">${record.oldPlacement}% → ${record.newPlacement}%</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-600">Secondary</div>
+                                    <div class="font-semibold">${record.secondaryOld}% → ${record.secondaryNew}%</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-600">Bid Change</div>
+                                    <div class="font-semibold ${bidChangeColor}">${bidChangeText}</div>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button onclick="bidOptimizer.loadFromHistory(${index})" class="text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-undo mr-1"></i>Load
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            loadFromHistory(index) {
+                const record = this.history[index];
+                if (!record) return;
+
+                this.setTab('calculator');
+                this.setMode(record.mode);
+                this.elements.oldPlacement.value = record.oldPlacement;
+                this.elements.newPlacement.value = record.newPlacement;
+                this.elements.secondaryOld.value = record.secondaryOld;
+                this.calculate();
+            }
+
+            clearHistory() {
+                if (confirm('Are you sure you want to clear all calculation history?')) {
+                    this.history = [];
+                    localStorage.removeItem('bidOptimizerHistory');
+                    this.renderHistory();
+                }
+            }
+
+            exportResults() {
+                const oldPlacement = parseFloat(this.elements.oldPlacement.value) || 0;
+                const newPlacement = parseFloat(this.elements.newPlacement.value) || 0;
+                const secondaryOld = parseFloat(this.elements.secondaryOld.value) || 0;
+                const secondaryNew = parseFloat(this.elements.secondaryNew.value) || 0;
+                const bidChange = this.computeBidChangePct(oldPlacement, newPlacement);
+
+                const csvContent = [
+                    ',,,,',
+                    ',,,,',
+                    ',Placement % Increase (+),,,',
+                    ',Old Placement,New Placement,,Decrease Bids by',
+                    `Primary Placement,${oldPlacement}%,${newPlacement}%,→,${Math.abs(bidChange).toFixed(1)}%`,
+                    `Secondary Placement,${secondaryOld}%,${secondaryNew}%,,`,
+                    ',,,,',
+                    ',,,,',
+                    '"Increase in Placements, Decrease in Bids Formula",,,,',
+                    ',,,,',
+                    '"Decrease in Bids = Placement Increase / (1 + New Placement)",,,,',
+                    ',,,,',
+                    ',,,,',
+                    ',Placement % Decrease (-),,,',
+                    ',Old Placement,New Placement,,Increase Bids by',
+                    `Primary Placement,${oldPlacement}%,${newPlacement}%,→,${bidChange >= 0 ? bidChange.toFixed(1) : Math.abs(bidChange).toFixed(1)}%`,
+                    `Secondary Placement,${secondaryOld}%,${secondaryNew}%,,`,
+                    secondaryNew === 0 ? ',"You\'ve set a drastic decrease in your \'Primary Placement\'. Decrease your \'Primary Placement\' at smaller amount. If you want to keep it, you need to set the \'New Secondary Placement\' to \'0%\'.",,,': ',,,,',
+                    ',,,,',
+                    '"Decrease in Placements, Increase in Bids Formula",,,,',
+                    ',,,,',
+                    '"Increase in Bids = (1 + Old Placement) / (1 + New Placement) - 1",,,,',
+                ].join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Amazon_PPC_Bid_Optimizer_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                const originalText = this.elements.exportResults.innerHTML;
+                this.elements.exportResults.innerHTML = '<i class="fas fa-check mr-2"></i>Exported!';
+                this.elements.exportResults.disabled = true;
+                setTimeout(() => {
+                    this.elements.exportResults.innerHTML = originalText;
+                    this.elements.exportResults.disabled = false;
+                }, 1500);
+            }
+        }
+
+        // Initialize the application
+        const bidOptimizer = new ComprehensiveBidOptimizer();
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"976797263aced8c3","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.8.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
+</body>
+</html>
+    <script id="html_badge_script1">
+        window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDtdwLdceibLYop9ib%2Brot7ZPLJYUsYuzjBGOy%2BTPaglX5QaeApbVrpTEOs9Y4mHvZ8GmjzWDzhxmXi%2BZ7mupBB%2FPxJarwnUCVS7Dt0oFuC88hKivS47kkns%2Bt7e40sGfIAbqJFSEcQYb3EpwO%2F3V17Yr9gHXzEFd3WugIWnqnOx2amxaeWt0fvgRSxYGmNh7dTVBQtE6KHJEFcZZgVUBYBbYD1JwVemz7o0XuS0BoI5bdqdmi7UsrNNiLuhXqx5%2BVqb96wPfXsVklKbWp4p0vZx%2BpueqGSntvVKaik3P5HSorT9LO6z4tebXIdqVJdzHMbwGAtiapmbSw%2FVj1Sj0zD81NgYY2%2BXPApziLcgAowZj1fdP5aD0qxUCRyKiGu8la1nqb7Qod6%2B%2Fmc6Cw%2BDo9m21yKgD1f1%2F%2B4Yf3sArEDf0BqUCBkt4Mz44BAO2nACV0oz9FOr4BlU02dS1Wni6q46GkcVjLGYAncweYoKYXUKOMLdSMk%2FVJI7uqEwDbkYglrjKMdOUp9nu9eugXprcLFQ%3D";
+        window.__genspark_locale = "en-US";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDtdwLdceibLYop9ib+rot7ZPLJYUsYuzjBGOy+TPaglX5QaeApbVrpTEOs9Y4mHvZ8GmjzWDzhxmXi+Z7mupBB/PxJarwnUCVS7Dt0oFuC88hKivS47kkns+t7e40sGfIAbqJFSEcQYb3EpwO/3V17Yr9gHXzEFd3WugIWnqnOx2amxaeWt0fvgRSxYGmNh7dTVBQtE6KHJEFcZZgVUBYBbYD1JwVemz7o0XuS0BoI5bdqdmi7UsrNNiLuhXqx5+Vqb96wPfXsVklKbWp4p0vZx+pueqGSntvVKaik3P5HSorT9LO6z4tebXIdqVJdzHMbwGAtiapmbSw/Vj1Sj0zD81NgYY2+XPApziLcgAowZj1fdP5aD0qxUCRyKiGu8la1nqb7Qod6+/mc6Cw+Do9m21yKgD1f1/+4Yf3sArEDf0BqUCBkt4Mz44BAO2nACV0oz9FOr4BlU02dS1Wni6q46GkcVjLGYAncweYoKYXUKOMLdSMk/VJI7uqEwDbkYglrjKMdOUp9nu9eugXprcLFQ=";
+    </script>
+    
+    <script id="html_notice_dialog_script" src="https://www.genspark.ai/notice_dialog.js"></script>
+    
